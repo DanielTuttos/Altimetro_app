@@ -1,98 +1,175 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
+import React, { useEffect } from 'react';
+import { ActivityIndicator, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { router } from 'expo-router';
+import { useAppTheme } from '../core/theme/use-app-theme';
+import { useAltitudeStore } from '../features/altitude/presentation/store/altitude.store';
+import { AltitudeDisplay } from '../features/altitude/presentation/components/AltitudeDisplay';
+import { AccuracyBadge } from '../features/altitude/presentation/components/AccuracyBadge';
+import { AdBanner } from '../features/monetization/presentation/components/AdBanner';
 
 export default function HomeScreen() {
+  const { colors } = useAppTheme();
+  const { altitude, loading, permissionGranted, error, initialize, requestPermissions } = useAltitudeStore();
+
+  useEffect(() => {
+    initialize();
+  }, []);
+
+  const handleOpenSettings = () => {
+    Linking.openSettings();
+  };
+
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={[styles.title, { color: colors.textPrimary }]}>Altímetro</Text>
+        <TouchableOpacity
+          onPress={() => router.push('/settings')}
+          style={[styles.settingsButton, { backgroundColor: colors.surface, borderColor: colors.surfaceBorder }]}
+        >
+          <Text style={{ color: colors.textPrimary, fontSize: 16 }}>⚙️</Text>
+        </TouchableOpacity>
+      </View>
 
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
+      {/* Contenido Principal */}
+      <View style={styles.content}>
+        {!permissionGranted ? (
+          <View style={[styles.permissionCard, { backgroundColor: colors.surface, borderColor: colors.surfaceBorder }]}>
+            <Text style={[styles.permissionTitle, { color: colors.textPrimary }]}>
+              Permiso de Ubicación Requerido
+            </Text>
+            <Text style={[styles.permissionText, { color: colors.textSecondary }]}>
+              La aplicación necesita acceso a la ubicación para calcular tu altitud exacta y margen de precisión.
+            </Text>
+            <TouchableOpacity
+              onPress={requestPermissions}
+              style={[styles.primaryButton, { backgroundColor: colors.accent }]}
+            >
+              <Text style={styles.primaryButtonText}>Conceder Permisos</Text>
+            </TouchableOpacity>
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
+            <TouchableOpacity onPress={handleOpenSettings} style={styles.secondaryButton}>
+              <Text style={[styles.secondaryButtonText, { color: colors.accent }]}>
+                Abrir Ajustes del Teléfono
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : loading && !altitude ? (
+          <View style={styles.centerContainer}>
+            <ActivityIndicator size="large" color={colors.accent} />
+            <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+              Obteniendo lecturas de altitud...
+            </Text>
+          </View>
+        ) : error && !altitude ? (
+          <View style={styles.centerContainer}>
+            <Text style={[{ color: colors.error }]}>{error}</Text>
+          </View>
+        ) : (
+          altitude && (
+            <>
+              <AltitudeDisplay meters={altitude.meters} />
+              <AccuracyBadge accuracyMeters={altitude.verticalAccuracyMeters} source={altitude.source} />
 
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+              {altitude.coordinates && (
+                <View style={styles.coordsContainer}>
+                  <Text style={[styles.coordsText, { color: colors.textSecondary }]}>
+                    Lat: {altitude.coordinates.latitude.toFixed(4)}° | Lng: {altitude.coordinates.longitude.toFixed(4)}°
+                  </Text>
+                </View>
+              )}
+            </>
+          )
+        )}
+      </View>
+
+      {/* Ad Banner Inferior */}
+      <AdBanner />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    paddingTop: 60,
+  },
+  header: {
     flexDirection: 'row',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
+    paddingHorizontal: 24,
   },
   title: {
+    fontSize: 28,
+    fontWeight: '800',
+    letterSpacing: -0.5,
+  },
+  settingsButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+  },
+  content: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingBottom: 80,
+  },
+  centerContainer: {
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 14,
+  },
+  permissionCard: {
+    padding: 24,
+    borderRadius: 16,
+    borderWidth: 1,
+    alignItems: 'center',
+    width: '100%',
+  },
+  permissionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 8,
     textAlign: 'center',
   },
-  code: {
-    textTransform: 'uppercase',
+  permissionText: {
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 20,
+    lineHeight: 20,
   },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+  primaryButton: {
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    width: '100%',
+    alignItems: 'center',
+  },
+  primaryButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: 15,
+  },
+  secondaryButton: {
+    marginTop: 14,
+  },
+  secondaryButtonText: {
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  coordsContainer: {
+    marginTop: 20,
+  },
+  coordsText: {
+    fontSize: 13,
   },
 });

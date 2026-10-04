@@ -86,7 +86,7 @@ Actúa como un Desarrollador Senior en React Native, TypeScript y Arquitectura O
 
 ```text
 .
-├── AGENT_GUIDELINES.md            # Este archivo de reglas
+├── AGENTs.md            # Este archivo de reglas
 ├── app.json
 ├── package.json
 ├── tsconfig.json
