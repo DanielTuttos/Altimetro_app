@@ -2,10 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 
 interface MonetizationState {
-  isPro: boolean;
   lastInterstitialAt: number | null;
-  setIsPro: (isPro: boolean) => void;
-  checkEntitlement: () => Promise<void>;
   shouldShowInterstitial: () => boolean;
   recordInterstitialShown: () => Promise<void>;
 }
@@ -16,26 +13,10 @@ const LAST_INTERSTITIAL_KEY = '@altimeter_last_interstitial';
 const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
 
 export const useMonetizationStore = create<MonetizationState>((set, get) => ({
-  isPro: false,
   lastInterstitialAt: null,
 
-  setIsPro: (isPro: boolean) => set({ isPro }),
-
-  checkEntitlement: async () => {
-    try {
-      const storedTime = await AsyncStorage.getItem(LAST_INTERSTITIAL_KEY);
-      set({
-        lastInterstitialAt: storedTime ? parseInt(storedTime, 10) : null,
-      });
-      // RevenueCat check stub - sin login de usuario (anonimo)
-    } catch {
-      // Ignorar errores
-    }
-  },
-
   shouldShowInterstitial: () => {
-    const { isPro, lastInterstitialAt } = get();
-    if (isPro) return false;
+    const { lastInterstitialAt } = get();
     if (!lastInterstitialAt) return true;
 
     const now = Date.now();

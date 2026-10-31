@@ -3,12 +3,10 @@ import { Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'r
 import { router } from 'expo-router';
 import { useAppTheme } from '../core/theme/use-app-theme';
 import { ThemeMode, useSettingsStore } from '../features/settings/presentation/store/settings.store';
-import { useMonetizationStore } from '../features/monetization/presentation/store/monetization.store';
 
 export default function SettingsScreen() {
   const { colors } = useAppTheme();
   const { themeMode, unit, setThemeMode, setUnit } = useSettingsStore();
-  const { isPro, setIsPro } = useMonetizationStore();
 
   const handleOpenAppSettings = () => {
     Linking.openSettings();
@@ -80,32 +78,6 @@ export default function SettingsScreen() {
               </Text>
             </View>
             <Text style={{ color: colors.textSecondary }}>→</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Sección 4: Suscripción Pro / Anuncios */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>MONETIZACIÓN (REVENUECAT / GOOGLE PLAY)</Text>
-        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.surfaceBorder }]}>
-          <View style={styles.optionRow}>
-            <View>
-              <Text style={[styles.optionText, { color: colors.textPrimary }]}>
-                {isPro ? '✨ Estado: Suscrito Pro (Sin Publicidad)' : 'Suscripción Pro Activa'}
-              </Text>
-              <Text style={[styles.subText, { color: colors.textSecondary }]}>
-                Elimina anuncios de banner e interstitials
-              </Text>
-            </View>
-          </View>
-
-          <TouchableOpacity
-            onPress={() => setIsPro(!isPro)}
-            style={[styles.actionButton, { backgroundColor: isPro ? colors.surfaceBorder : colors.accent }]}
-          >
-            <Text style={{ color: isPro ? colors.textPrimary : '#FFFFFF', fontWeight: '700' }}>
-              {isPro ? 'Simular Cancelación PRO' : 'Comprar Suscripción (Google Play)'}
-            </Text>
           </TouchableOpacity>
         </View>
       </View>

@@ -63,8 +63,25 @@ export default function HomeScreen() {
             </Text>
           </View>
         ) : error && !altitude ? (
-          <View style={styles.centerContainer}>
-            <Text style={[{ color: colors.error }]}>{error}</Text>
+          <View style={[styles.permissionCard, { backgroundColor: colors.surface, borderColor: colors.surfaceBorder }]}>
+            <Text style={[styles.permissionTitle, { color: colors.error }]}>
+              Ubicación No Disponible
+            </Text>
+            <Text style={[styles.permissionText, { color: colors.textSecondary }]}>
+              {error}
+            </Text>
+            <TouchableOpacity
+              onPress={initialize}
+              style={[styles.primaryButton, { backgroundColor: colors.accent }]}
+            >
+              <Text style={styles.primaryButtonText}>Reintentar Obtener Ubicación</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={handleOpenSettings} style={styles.secondaryButton}>
+              <Text style={[styles.secondaryButtonText, { color: colors.accent }]}>
+                Abrir Ajustes del Teléfono
+              </Text>
+            </TouchableOpacity>
           </View>
         ) : (
           altitude && (
@@ -119,7 +136,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 24,
-    paddingBottom: 80,
+    paddingBottom: 100,
   },
   centerContainer: {
     alignItems: 'center',

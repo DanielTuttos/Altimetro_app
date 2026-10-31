@@ -41,14 +41,25 @@ export const useAltitudeStore = create<AltitudeState>((set, get) => ({
       }
 
       set({ permissionGranted: true });
-      const current = await getCurrentAltitudeUseCase.execute();
-      set({ altitude: current, loading: false });
 
-      // Suscribirse a cambios en tiempo real
+      // Suscribirse siempre a cambios en tiempo real
       if (unsubscribe) unsubscribe();
       unsubscribe = subscribeAltitudeUseCase.execute((newAltitude) => {
-        set({ altitude: newAltitude });
+        set({ altitude: newAltitude, loading: false, error: null });
       });
+
+      try {
+        const current = await getCurrentAltitudeUseCase.execute();
+        set({ altitude: current, loading: false, error: null });
+      } catch (err: any) {
+        if (!get().altitude) {
+          set({
+            loading: false,
+            error:
+              'Esperando señal de ubicación GPS... Si estás en un simulador de iOS, activa una ubicación en Features > Location.',
+          });
+        }
+      }
     } catch (err: any) {
       set({ loading: false, error: err.message || 'Error al obtener altitud' });
     }

@@ -1,36 +1,66 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useMonetizationStore } from '../store/monetization.store';
+import { StyleSheet, Text, View } from 'react-native';
+import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
 import { useAppTheme } from '../../../../core/theme/use-app-theme';
+import { getAdMobBannerUnitId } from '../../infrastructure/admob.config';
 
 export const AdBanner: React.FC = () => {
   const { colors } = useAppTheme();
-  const isPro = useMonetizationStore((state) => state.isPro);
+  const [adFailed, setAdFailed] = React.useState(false);
+  const isMountedRef = React.useRef(false);
 
-  if (isPro) {
-    return null; // Desmontar si el usuario compro la suscripción Pro
-  }
+  React.useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  const adUnitId = __DEV__ ? TestIds.BANNER : getAdMobBannerUnitId();
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.card, borderColor: colors.surfaceBorder }]}>
-      <Text style={[styles.adLabel, { color: colors.textSecondary }]}>ANUNCIO</Text>
-      <Text style={[styles.adContent, { color: colors.textPrimary }]}>
-        Publicidad Adaptativa Integrada (AdMob)
-      </Text>
+    <View style={[styles.container, { backgroundColor: colors.surface, borderColor: colors.surfaceBorder }]}>
+      {adFailed ? (
+        <View style={styles.placeholderContainer}>
+          <Text style={[styles.adLabel, { color: colors.textSecondary }]}>PUBLICIDAD ADMOB (TEST MODE)</Text>
+          <Text style={[styles.adContent, { color: colors.textPrimary }]}>
+            Error al conectar con AdMob Test Server
+          </Text>
+        </View>
+      ) : (
+        <BannerAd
+          unitId={adUnitId}
+          size={BannerAdSize.BANNER}
+          requestOptions={{
+            requestNonPersonalizedAdsOnly: true,
+          }}
+          onAdFailedToLoad={(error) => {
+            console.warn('[AdMob Banner] Error al cargar anuncio:', error.message);
+            if (isMountedRef.current) {
+              setAdFailed(true);
+            }
+          }}
+        />
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    height: 72,
+    minHeight: 80,
     width: '100%',
-    borderTopWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'absolute',
     bottom: 0,
-    paddingBottom: 8,
+    borderTopWidth: 1,
+    paddingVertical: 12,
+  },
+  placeholderContainer: {
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   adLabel: {
     fontSize: 10,
@@ -43,3 +73,4 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 });
+

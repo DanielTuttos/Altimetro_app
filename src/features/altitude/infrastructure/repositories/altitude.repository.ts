@@ -63,9 +63,24 @@ export class AltitudeRepository implements IAltitudeRepository {
         throw new LocationPermissionFailure();
       }
 
-      const location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.High,
-      });
+      let location: Location.LocationObject | null = null;
+      try {
+        location = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+      } catch {
+        try {
+          location = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.Lowest,
+          });
+        } catch {
+          location = await Location.getLastKnownPositionAsync({});
+        }
+      }
+
+      if (!location) {
+        throw new Error('No se pudo obtener la posición del dispositivo');
+      }
 
       const gpsMeters = location.coords.altitude ?? 0;
       const verticalAccuracy = location.coords.altitudeAccuracy ?? null;

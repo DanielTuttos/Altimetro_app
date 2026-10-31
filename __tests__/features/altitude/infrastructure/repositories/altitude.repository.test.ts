@@ -7,9 +7,10 @@ jest.mock('expo-location', () => ({
   requestForegroundPermissionsAsync: jest.fn(),
   getForegroundPermissionsAsync: jest.fn(),
   getCurrentPositionAsync: jest.fn(),
+  getLastKnownPositionAsync: jest.fn(),
   watchPositionAsync: jest.fn(),
   PermissionStatus: { GRANTED: 'granted' },
-  Accuracy: { High: 4 },
+  Accuracy: { High: 4, Balanced: 3 },
 }));
 
 jest.mock('expo-sensors', () => ({
