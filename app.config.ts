@@ -26,7 +26,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         monochromeImage: './assets/images/android-icon-monochrome.png',
       },
       predictiveBackGestureEnabled: false,
-      package: 'com.danielromeroag.altitude_app',
+      package: 'com.danielromeroag.altitudeapp',
       permissions: [
         'android.permission.ACCESS_COARSE_LOCATION',
         'android.permission.ACCESS_FINE_LOCATION',
@@ -71,6 +71,12 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     experiments: {
       typedRoutes: true,
       reactCompiler: true,
+    },
+    extra: {
+      ...config.extra,
+      eas: {
+        projectId: '90d27a46-dbe3-4395-8d67-5417d43a4409',
+      },
     },
   };
 };
