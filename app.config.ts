@@ -5,7 +5,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ...config,
     name: "Altímetro",
     slug: "altitude_app",
-    version: "1.0.0",
+    version: "1.0.3",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
     scheme: "altitudeapp",
@@ -32,9 +32,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         "android.permission.ACCESS_FINE_LOCATION",
         "com.google.android.gms.permission.AD_ID",
       ],
-      blockedPermissions: [
-        "android.permission.ACTIVITY_RECOGNITION",
-      ],
+      blockedPermissions: ["android.permission.ACTIVITY_RECOGNITION"],
     },
     web: {
       output: "static",
